@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 
 class NavigationCard extends StatelessWidget {
   final String title;
-  final String assetPath;
   final VoidCallback onTap;
 
   const NavigationCard({
     super.key,
     required this.title,
-    required this.assetPath,
     required this.onTap,
   });
 
@@ -17,36 +15,40 @@ class NavigationCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 200,
+        height: 100,
         decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage(assetPath),
-            fit: BoxFit.cover,
-          ),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(15),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              spreadRadius: 2,
-              blurRadius: 5,
-              offset: const Offset(0, 3),
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-            color: Colors.black.withOpacity(0.3),
-          ),
-          child: Center(
-            child: Text(
-              title,
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineLarge
-                  ?.copyWith(color: Colors.white),
+        child: Column(
+          children: [
+            Container(
+              height: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xFFD2B48C), // Tan rengi
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
+              ),
             ),
-          ),
+            Expanded(
+              child: Center(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF4A4A4A),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

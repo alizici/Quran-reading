@@ -157,7 +157,7 @@ mixin _$QuranStore on QuranStoreBase, Store {
       AsyncAction('QuranStoreBase.fetchAyahByPage', context: context);
 
   @override
-  Future<void> fetchAyahByPage(int pageNumber) {
+  Future<List<Map<String, dynamic>>> fetchAyahByPage(int pageNumber) {
     return _$fetchAyahByPageAsyncAction
         .run(() => super.fetchAyahByPage(pageNumber));
   }

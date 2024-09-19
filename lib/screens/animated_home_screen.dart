@@ -1,77 +1,69 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-//import 'package:provider/provider.dart';
-//import '../stores/quran_store.dart';
 import '../widgets/navigation_card.dart';
 import 'surah_page_view_screen.dart';
 import 'ayah_screen.dart';
+import '../theme.dart';
 
-class AnimatedHomeScreen extends StatefulWidget {
+class AnimatedHomeScreen extends StatelessWidget {
   const AnimatedHomeScreen({super.key});
 
   @override
-  _AnimatedHomeScreenState createState() => _AnimatedHomeScreenState();
-}
-
-class _AnimatedHomeScreenState extends State<AnimatedHomeScreen> {
-  int _colorIndex = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _startColorAnimation();
-  }
-
-  void _startColorAnimation() {
-    Timer.periodic(const Duration(seconds: 3), (timer) {
-      setState(() => _colorIndex = (_colorIndex + 1) % 2);
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final colors = [
-      Theme.of(context).primaryColor.withOpacity(0.3),
-      Theme.of(context).primaryColor.withOpacity(0.1),
-    ];
-
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: _colorIndex == 0 ? colors : colors.reversed.toList(),
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                NavigationCard(
-                  title: 'Sureler',
-                  assetPath: 'assets/sure.png',
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const SurahPageViewScreen(),
+      backgroundColor: AppColors.backgroundColor,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 40),
+              const Text(
+                'Kuran-ı Kerim',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textColor,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              Expanded(
+                child: Image.asset(
+                  'assets/back.png',
+                  fit: BoxFit.cover,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: NavigationCard(
+                      title: 'Sureler',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SurahPageViewScreen(),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                NavigationCard(
-                  title: 'Ayetler',
-                  assetPath: 'assets/ayetmeal.png',
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const AyahScreen(),
+                  const SizedBox(width: 20),
+                  Expanded(
+                    child: NavigationCard(
+                      title: 'Ayetler',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AyahScreen(),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
+              const SizedBox(height: 40),
+            ],
           ),
         ),
       ),

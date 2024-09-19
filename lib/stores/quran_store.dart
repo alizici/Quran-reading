@@ -855,18 +855,20 @@ abstract class QuranStoreBase with Store {
     );
   }
 
-  @action
-  Future<void> fetchAyahByPage(int pageNumber) async {
-    try {
-      pageContent = await _databaseHelper.getAyahByPage(pageNumber);
-      currentPage = pageNumber;
-      if (pageContent.isNotEmpty) {
-        juzNumber = pageContent.first['Cuz'];
-      }
-    } catch (e) {
-      print("Error fetching ayah by page: $e");
+@action
+Future<List<Map<String, dynamic>>> fetchAyahByPage(int pageNumber) async {
+  try {
+    pageContent = await _databaseHelper.getAyahByPage(pageNumber);
+    currentPage = pageNumber;
+    if (pageContent.isNotEmpty) {
+      juzNumber = pageContent.first['Cuz'];
     }
+    return pageContent;
+  } catch (e) {
+    print("Error fetching ayah by page: $e");
+    return [];
   }
+}
 
   @action
   Future<void> fetchAyahAndTranslationBySurah(int surahNumber) async {

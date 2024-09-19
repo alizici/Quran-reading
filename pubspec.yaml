@@ -29,13 +29,9 @@ flutter:
   uses-material-design: true
   assets:
     - assets/kd.sqlite
-    - assets/kuran3.sqlite
-    - assets/sure.png
-    - assets/ayetmeal.png
     - assets/header.png
     - assets/shema.png
-   
-
+    - assets/back.png
 
 
   fonts:

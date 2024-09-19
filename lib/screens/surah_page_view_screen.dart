@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
+//import 'package:flutter_mobx/flutter_mobx.dart';
 import '../stores/quran_store.dart';
 import '../widgets/quran_page_template.dart';
+import '../theme.dart';
 
 class SurahPageViewScreen extends StatefulWidget {
   const SurahPageViewScreen({super.key});
@@ -13,13 +14,15 @@ class SurahPageViewScreen extends StatefulWidget {
 
 class _SurahPageViewScreenState extends State<SurahPageViewScreen> {
   late PageController _pageController;
+  late QuranStore _store;
+  final Map<int, Future<List<Map<String, dynamic>>>> _pageCache = {};
 
   @override
   void initState() {
     super.initState();
-    final store = Provider.of<QuranStore>(context, listen: false);
-    store.fetchAyahByPage(1);
+    _store = Provider.of<QuranStore>(context, listen: false);
     _pageController = PageController(initialPage: 0);
+    _preloadPages(1);
   }
 
   @override
@@ -28,22 +31,31 @@ class _SurahPageViewScreenState extends State<SurahPageViewScreen> {
     super.dispose();
   }
 
-  void _goToSurah(QuranStore store, int surahNumber) async {
-    final int pageNumber = await store.getPageForSurah(surahNumber);
+  void _preloadPages(int currentPage) {
+    for (int i = currentPage;
+        i < currentPage + 3 && i <= _store.totalPages;
+        i++) {
+      if (!_pageCache.containsKey(i)) {
+        _pageCache[i] = _store.fetchAyahByPage(i);
+      }
+    }
+  }
+
+  void _goToSurah(int surahNumber) async {
+    final int pageNumber = await _store.getPageForSurah(surahNumber);
     if (_pageController.hasClients) {
       _pageController.animateToPage(
         pageNumber - 1,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
-      store.fetchAyahByPage(pageNumber);
     }
   }
 
-  PreferredSizeWidget buildSurahAppBar(BuildContext context, QuranStore store) {
+  PreferredSizeWidget buildSurahAppBar(BuildContext context) {
     return AppBar(
       title: const Text('Sureler'),
-      backgroundColor: Colors.teal.shade600,
+      backgroundColor: AppColors.appBarColor,
       elevation: 0,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -55,11 +67,11 @@ class _SurahPageViewScreenState extends State<SurahPageViewScreen> {
           onPressed: () => showModalBottomSheet(
             context: context,
             builder: (context) => ListView.builder(
-              itemCount: store.surahNames.length,
+              itemCount: _store.surahNames.length,
               itemBuilder: (context, index) => ListTile(
-                title: Text(store.surahNames[index]),
+                title: Text(_store.surahNames[index]),
                 onTap: () {
-                  _goToSurah(store, index + 1);
+                  _goToSurah(index + 1);
                   Navigator.pop(context);
                 },
               ),
@@ -72,36 +84,42 @@ class _SurahPageViewScreenState extends State<SurahPageViewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final store = Provider.of<QuranStore>(context);
-
     return Scaffold(
-      appBar: buildSurahAppBar(context, store),
-      body: Observer(
-        builder: (_) {
-          if (store.pageContent.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          } else {
-            return PageView.builder(
-              controller: _pageController,
-              scrollDirection: Axis.horizontal,
-              onPageChanged: (index) => store.fetchAyahByPage(index + 1),
-              itemCount: store.totalPages,
-              itemBuilder: (context, index) {
-                final int surahNumber = store.pageContent.first['Sure'];
-                final String surahName =
-                    store.surahInfo[surahNumber - 1]["name"];
+      appBar: buildSurahAppBar(context),
+      body: PageView.builder(
+        reverse: true,
+        controller: _pageController,
+        itemCount: _store.totalPages,
+        onPageChanged: (index) {
+          _preloadPages(index + 1);
+        },
+        itemBuilder: (context, index) {
+          return FutureBuilder<List<Map<String, dynamic>>>(
+            future: _pageCache[index + 1] ?? _store.fetchAyahByPage(index + 1),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(child: Text('No data available'));
+              }
 
-                return QuranPageTemplate(
-                  surahName: surahName,
-                  surahNumber: surahNumber,
-                  pageNumber: index + 1,
-                  juzNumber: store.juzNumber,
-                  ayatList: store.pageContent,
-                  surahNames: store.surahNames,
-                );
-              },
-            );
-          }
+              final pageContent = snapshot.data!;
+              final int surahNumber = pageContent.first['Sure'];
+              final String surahName =
+                  _store.surahInfo[surahNumber - 1]["name"];
+
+              return QuranPageTemplate(
+                surahName: surahName,
+                surahNumber: surahNumber,
+                pageNumber: index + 1,
+                juzNumber: pageContent.first['Cuz'],
+                ayatList: pageContent,
+                surahNames: _store.surahNames,
+              );
+            },
+          );
         },
       ),
     );

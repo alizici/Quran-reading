@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import '../stores/quran_store.dart';
+import '../theme.dart';
 
 class AyahScreen extends StatefulWidget {
   const AyahScreen({super.key});
@@ -58,86 +59,90 @@ class _AyahScreenState extends State<AyahScreen> {
                         itemCount: store.ayahList.length,
                         itemBuilder: (context, index) {
                           var ayah = store.ayahList[index];
-                          String surahName =
-                              store.surahNames[ayah['Sure'] - 1];
-                          int ayahNumber = ayah['Ayet'];
-                          int pageNumber = ayah['Sayfa'];
-                          int juzNumber = ayah['Cuz'];
-
-                          return Card(
-                            elevation: 2,
-                            margin: const EdgeInsets.only(bottom: 16),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Text(
-                                    ayah['textArapca'],
-                                    textAlign: TextAlign.right,
-                                    style: TextStyle(
-                                      fontFamily: 'ArabicFont',
-                                      fontSize: fontSize + 6,
-                                      color: Colors.teal.shade900,
-                                      height: 1.5,
-                                    ),
-                                    textDirection: TextDirection.rtl,
-                                  ),
-                                  const SizedBox(height: 8.0),
-                                  Text(
-                                    '($surahName, Ayet: $ayahNumber, Sayfa: $pageNumber, Cüz: $juzNumber)',
-                                    style: TextStyle(
-                                      fontSize: fontSize - 4,
-                                      color: Colors.grey[600],
-                                      fontStyle: FontStyle.italic,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16.0),
-                                  if (showTranscript) ...[
-                                    Text(
-                                      'Türkçe Okunuş:',
-                                      style: TextStyle(
-                                        fontSize: fontSize - 2,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.teal.shade700,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4.0),
-                                    Text(
-                                      ayah['transcript'],
-                                      style: TextStyle(
-                                        fontSize: fontSize,
-                                        color: Colors.black54,
-                                        fontStyle: FontStyle.italic,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16.0),
-                                  ],
-                                  Text(
-                                    'Meal:',
-                                    style: TextStyle(
-                                      fontSize: fontSize - 2,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.teal.shade700,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4.0),
-                                  Text(
-                                    ayah['translation'],
-                                    style: TextStyle(
-                                      fontSize: fontSize,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
+                          return _buildAyahCard(context, ayah, store);
                         },
                       ),
               ),
             ),
             _buildFontSizeControls(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAyahCard(
+      BuildContext context, Map<String, dynamic> ayah, QuranStore store) {
+    String surahName = store.surahNames[ayah['Sure'] - 1];
+    int ayahNumber = ayah['Ayet'];
+    int pageNumber = ayah['Sayfa'];
+    int juzNumber = ayah['Cuz'];
+
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              ayah['textArapca'],
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontFamily: 'ArabicFont',
+                fontSize: fontSize + 6,
+                color: AppColors.textColor,
+                height: 1.5,
+              ),
+              textDirection: TextDirection.rtl,
+            ),
+            const SizedBox(height: 8.0),
+            Text(
+              '($surahName, Ayet: $ayahNumber, Sayfa: $pageNumber, Cüz: $juzNumber)',
+              style: TextStyle(
+                fontSize: fontSize - 4,
+                color: Colors.grey[600],
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+            const SizedBox(height: 16.0),
+            if (showTranscript) ...[
+              Text(
+                'Türkçe Okunuş:',
+                style: TextStyle(
+                  fontSize: fontSize - 2,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primaryColor,
+                ),
+              ),
+              const SizedBox(height: 4.0),
+              Text(
+                ayah['transcript'],
+                style: TextStyle(
+                  fontSize: fontSize,
+                  color: Colors.black54,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+              const SizedBox(height: 16.0),
+            ],
+            Text(
+              'Meal:',
+              style: TextStyle(
+                fontSize: fontSize - 2,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primaryColor,
+              ),
+            ),
+            const SizedBox(height: 4.0),
+            Text(
+              ayah['translation'],
+              style: TextStyle(
+                fontSize: fontSize,
+                color: Colors.black87,
+              ),
+            ),
           ],
         ),
       ),
@@ -182,10 +187,10 @@ PreferredSizeWidget buildAppBarWithSearch(
     _AyahScreenState state) {
   return AppBar(
     title: const Text('Ayetler'),
-    backgroundColor: Colors.transparent,
+    backgroundColor: AppColors.appBarColor,
     elevation: 0,
     leading: IconButton(
-      icon: Icon(Icons.arrow_back, color: Colors.teal.shade900),
+      icon: const Icon(Icons.arrow_back, color: Colors.white),
       onPressed: () => Navigator.pop(context),
     ),
     actions: [
@@ -199,7 +204,7 @@ PreferredSizeWidget buildAppBarWithSearch(
 Widget buildSurahSelectionButton(
     BuildContext context, QuranStore store, _AyahScreenState state) {
   return IconButton(
-    icon: Icon(Icons.list, color: Colors.teal.shade900),
+    icon: Icon(Icons.list, color: const Color.fromARGB(255, 255, 255, 255)),
     onPressed: () => showModalBottomSheet(
       context: context,
       builder: (context) => ListView.builder(
@@ -219,7 +224,7 @@ Widget buildSurahSelectionButton(
 Widget buildSearchButton(BuildContext context, QuranStore store,
     TextEditingController searchController, FocusNode focusNode) {
   return IconButton(
-    icon: Icon(Icons.search, color: Colors.teal.shade900),
+    icon: Icon(Icons.search, color: const Color.fromARGB(255, 255, 255, 255)),
     onPressed: () => showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -305,7 +310,7 @@ Widget buildSearchButton(BuildContext context, QuranStore store,
 Widget buildLanguageButton(
     BuildContext context, _AyahScreenState state, QuranStore store) {
   return IconButton(
-    icon: Icon(Icons.language, color: Colors.teal.shade900),
+    icon: Icon(Icons.language, color: Color.fromARGB(255, 255, 255, 255)),
     onPressed: () {
       showLanguageSelectionDialog(context, state, store);
     },
@@ -353,6 +358,10 @@ void showLanguageSelectionDialog(
                       state.toggleTranscript(value);
                     });
                   },
+                  activeColor: AppColors.primaryColor,
+                  activeTrackColor: AppColors.primaryColor.withOpacity(0.5),
+                  inactiveThumbColor: AppColors.appBarColor,
+                  inactiveTrackColor: AppColors.appBarColor.withOpacity(0.5),
                 ),
               ],
             ),
