@@ -9,7 +9,7 @@ abstract class QuranStoreBase with Store {
   final DatabaseHelper _databaseHelper = DatabaseHelper();
 
   @observable
-  List<Map<String, dynamic>> ayetList = [];
+  List<Map<String, dynamic>> ayahList = [];
 
   @observable
   String selectedLanguage = "Türkçe";
@@ -34,9 +34,6 @@ abstract class QuranStoreBase with Store {
 
   @observable
   bool showTranscript = true;
-
-  //@observable
-  //String combinedPageText = "";
 
   final List<Map<String, dynamic>> surahInfo = [
     {
@@ -841,70 +838,66 @@ abstract class QuranStoreBase with Store {
 
   List<String> get surahNames =>
       surahInfo.map((info) => info["name"] as String).toList();
+
   List<String> get arabicSurahNames =>
       surahInfo.map((info) => info["arabicName"] as String).toList();
 
   Map<String, dynamic> getSurahInfo(int number) {
-    return surahInfo.firstWhere((info) => info["number"] == number,
-        orElse: () => {
-              "number": 0,
-              "name": "Unknown",
-              "arabicName": "غير معروف",
-              "type": "غير معروف",
-              "ayatCount": "غير معروف"
-            });
+    return surahInfo.firstWhere(
+      (info) => info["number"] == number,
+      orElse: () => {
+        "number": 0,
+        "name": "Unknown",
+        "arabicName": "غير معروف",
+        "type": "غير معروف",
+        "ayatCount": "غير معروف"
+      },
+    );
   }
 
-//belki silinir
-/*
-  String getSurahName(int index, {bool arabic = false}) {
-    if (index >= 1 && index <= surahInfo.length) {
-      return arabic
-          ? surahInfo[index - 1]["arabicName"]!
-          : surahInfo[index - 1]["name"]!;
-    }
-    return "Unknown Surah";
-  }*/
-
   @action
-  Future<void> fetchAyetByPage(int pageNumber) async {
-    pageContent = await _databaseHelper.getAyetByPage(pageNumber);
-    currentPage = pageNumber;
-    if (pageContent.isNotEmpty) {
-      juzNumber = pageContent.first['Cuz'];
+  Future<void> fetchAyahByPage(int pageNumber) async {
+    try {
+      pageContent = await _databaseHelper.getAyahByPage(pageNumber);
+      currentPage = pageNumber;
+      if (pageContent.isNotEmpty) {
+        juzNumber = pageContent.first['Cuz'];
+      }
+    } catch (e) {
+      print("Error fetching ayah by page: $e");
     }
   }
 
   @action
-  Future<void> fetchAyetAndMealBySurah(int surahNumber) async {
-    currentSurah = surahNumber;
-    ayetList = await _databaseHelper.getAyetAndMealBySurah(
-        surahNumber, selectedLanguage);
-    if (ayetList.isNotEmpty) {
-      currentAyah = ayetList.first['Ayet'];
+  Future<void> fetchAyahAndTranslationBySurah(int surahNumber) async {
+    try {
+      currentSurah = surahNumber;
+      ayahList = await _databaseHelper.getAyahAndTranslationBySurah(
+          surahNumber, selectedLanguage);
+      if (ayahList.isNotEmpty) {
+        currentAyah = ayahList.first['Ayet'];
+      }
+    } catch (e) {
+      print("Error fetching ayah and translation: $e");
     }
-    // Burada bir runInAction ekleyelim
-    runInAction(() {
-      // Bu, observable değişkenlerin güncellenmesini garanti eder
-    });
   }
 
   @action
   Future<void> searchByArabicText(String searchText) async {
-    ayetList =
-        await _databaseHelper.searchByArabicText(searchText, selectedLanguage);
+    ayahList = await _databaseHelper.searchByArabicText(
+        searchText, selectedLanguage);
   }
-  
+
   @action
-  Future<void> searchByMeal(String searchText) async {
-    ayetList = await _databaseHelper.searchByMeal(searchText, selectedLanguage);
+  Future<void> searchByTranslation(String searchText) async {
+    ayahList =
+        await _databaseHelper.searchByTranslation(searchText, selectedLanguage);
   }
 
   @action
   Future<void> searchByTranscript(String searchText) async {
-    ayetList = await _databaseHelper.searchByTranscript(searchText);
+    ayahList = await _databaseHelper.searchByTranscript(searchText);
   }
-
 
   @action
   Future<int> getPageForSurah(int surahNumber) async {
@@ -914,7 +907,7 @@ abstract class QuranStoreBase with Store {
   @action
   void changeLanguage(String language) {
     selectedLanguage = language;
-    fetchAyetAndMealBySurah(currentSurah);
+    fetchAyahAndTranslationBySurah(currentSurah);
   }
 
   @action

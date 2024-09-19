@@ -9,19 +9,19 @@ part of 'quran_store.dart';
 // ignore_for_file: non_constant_identifier_names, unnecessary_brace_in_string_interps, unnecessary_lambdas, prefer_expression_function_bodies, lines_longer_than_80_chars, avoid_as, avoid_annotating_with_dynamic, no_leading_underscores_for_local_identifiers
 
 mixin _$QuranStore on QuranStoreBase, Store {
-  late final _$ayetListAtom =
-      Atom(name: 'QuranStoreBase.ayetList', context: context);
+  late final _$ayahListAtom =
+      Atom(name: 'QuranStoreBase.ayahList', context: context);
 
   @override
-  List<Map<String, dynamic>> get ayetList {
-    _$ayetListAtom.reportRead();
-    return super.ayetList;
+  List<Map<String, dynamic>> get ayahList {
+    _$ayahListAtom.reportRead();
+    return super.ayahList;
   }
 
   @override
-  set ayetList(List<Map<String, dynamic>> value) {
-    _$ayetListAtom.reportWrite(value, super.ayetList, () {
-      super.ayetList = value;
+  set ayahList(List<Map<String, dynamic>> value) {
+    _$ayahListAtom.reportWrite(value, super.ayahList, () {
+      super.ayahList = value;
     });
   }
 
@@ -137,22 +137,39 @@ mixin _$QuranStore on QuranStoreBase, Store {
     });
   }
 
-  late final _$fetchAyetByPageAsyncAction =
-      AsyncAction('QuranStoreBase.fetchAyetByPage', context: context);
+  late final _$showTranscriptAtom =
+      Atom(name: 'QuranStoreBase.showTranscript', context: context);
 
   @override
-  Future<void> fetchAyetByPage(int pageNumber) {
-    return _$fetchAyetByPageAsyncAction
-        .run(() => super.fetchAyetByPage(pageNumber));
+  bool get showTranscript {
+    _$showTranscriptAtom.reportRead();
+    return super.showTranscript;
   }
 
-  late final _$fetchAyetAndMealBySurahAsyncAction =
-      AsyncAction('QuranStoreBase.fetchAyetAndMealBySurah', context: context);
+  @override
+  set showTranscript(bool value) {
+    _$showTranscriptAtom.reportWrite(value, super.showTranscript, () {
+      super.showTranscript = value;
+    });
+  }
+
+  late final _$fetchAyahByPageAsyncAction =
+      AsyncAction('QuranStoreBase.fetchAyahByPage', context: context);
 
   @override
-  Future<void> fetchAyetAndMealBySurah(int surahNumber) {
-    return _$fetchAyetAndMealBySurahAsyncAction
-        .run(() => super.fetchAyetAndMealBySurah(surahNumber));
+  Future<void> fetchAyahByPage(int pageNumber) {
+    return _$fetchAyahByPageAsyncAction
+        .run(() => super.fetchAyahByPage(pageNumber));
+  }
+
+  late final _$fetchAyahAndTranslationBySurahAsyncAction = AsyncAction(
+      'QuranStoreBase.fetchAyahAndTranslationBySurah',
+      context: context);
+
+  @override
+  Future<void> fetchAyahAndTranslationBySurah(int surahNumber) {
+    return _$fetchAyahAndTranslationBySurahAsyncAction
+        .run(() => super.fetchAyahAndTranslationBySurah(surahNumber));
   }
 
   late final _$searchByArabicTextAsyncAction =
@@ -162,6 +179,24 @@ mixin _$QuranStore on QuranStoreBase, Store {
   Future<void> searchByArabicText(String searchText) {
     return _$searchByArabicTextAsyncAction
         .run(() => super.searchByArabicText(searchText));
+  }
+
+  late final _$searchByTranslationAsyncAction =
+      AsyncAction('QuranStoreBase.searchByTranslation', context: context);
+
+  @override
+  Future<void> searchByTranslation(String searchText) {
+    return _$searchByTranslationAsyncAction
+        .run(() => super.searchByTranslation(searchText));
+  }
+
+  late final _$searchByTranscriptAsyncAction =
+      AsyncAction('QuranStoreBase.searchByTranscript', context: context);
+
+  @override
+  Future<void> searchByTranscript(String searchText) {
+    return _$searchByTranscriptAsyncAction
+        .run(() => super.searchByTranscript(searchText));
   }
 
   late final _$getPageForSurahAsyncAction =
@@ -188,16 +223,28 @@ mixin _$QuranStore on QuranStoreBase, Store {
   }
 
   @override
+  void toggleTranscript() {
+    final _$actionInfo = _$QuranStoreBaseActionController.startAction(
+        name: 'QuranStoreBase.toggleTranscript');
+    try {
+      return super.toggleTranscript();
+    } finally {
+      _$QuranStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   String toString() {
     return '''
-ayetList: ${ayetList},
+ayahList: ${ayahList},
 selectedLanguage: ${selectedLanguage},
 currentSurah: ${currentSurah},
 currentAyah: ${currentAyah},
 currentPage: ${currentPage},
 juzNumber: ${juzNumber},
 pageContent: ${pageContent},
-totalPages: ${totalPages}
+totalPages: ${totalPages},
+showTranscript: ${showTranscript}
     ''';
   }
 }

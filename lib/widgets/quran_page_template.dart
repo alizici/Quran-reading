@@ -1,66 +1,7 @@
 import 'package:flutter/material.dart';
-import 'text_helpers.dart';
+import '../widgets/text_helpers.dart';
 import 'package:provider/provider.dart';
-import 'stores/quran_store.dart';
-
-class QuranPageViewScreen extends StatefulWidget {
-  final List<Map<String, dynamic>> allPagesData;
-  final int initialPage;
-
-  const QuranPageViewScreen({
-    super.key,
-    required this.allPagesData,
-    required this.initialPage,
-  });
-
-  @override
-  _QuranPageViewScreenState createState() => _QuranPageViewScreenState();
-}
-
-class _QuranPageViewScreenState extends State<QuranPageViewScreen> {
-  late PageController _pageController;
-  int currentPageIndex = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    currentPageIndex = widget.initialPage;
-    _pageController = PageController(initialPage: currentPageIndex);
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final store = Provider.of<QuranStore>(context);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-            'Quran Pages - Page ${getArabicNumber((currentPageIndex + 1).toString())}'),
-        backgroundColor: Colors.teal.shade600,
-      ),
-      body: PageView.builder(
-        controller: _pageController,
-        onPageChanged: (index) => setState(() => currentPageIndex = index),
-        physics: const PageScrollPhysics(),
-        itemCount: widget.allPagesData.length,
-        itemBuilder: (context, index) => QuranPageTemplate(
-          surahName: widget.allPagesData[index]['surahName'],
-          surahNumber: widget.allPagesData[index]['surahNumber'],
-          pageNumber: widget.allPagesData[index]['pageNumber'],
-          juzNumber: widget.allPagesData[index]['juzNumber'],
-          ayatList: widget.allPagesData[index]['ayatList'],
-          surahNames: store.surahNames, // Buraya surahNames listesini ekledik
-        ),
-      ),
-    );
-  }
-}
+import '../stores/quran_store.dart';
 
 class QuranPageTemplate extends StatefulWidget {
   final String surahName;
@@ -123,13 +64,11 @@ class _QuranPageTemplateState extends State<QuranPageTemplate> {
 
   Widget _buildTopInfoBar(double baseFontSize) {
     Set<String> surahNames = <String>{};
-    for (var ayet in widget.ayatList) {
-      int surahNumber = ayet['Sure'] as int;
-      surahNames
-          .add(widget.surahNames[surahNumber - 1]); // Doğru sure adını alıyoruz
+    for (var ayah in widget.ayatList) {
+      int surahNumber = ayah['Sure'] as int;
+      surahNames.add(widget.surahNames[surahNumber - 1]);
     }
-    String surahText =
-        surahNames.toList().join(" - "); // Sure adlarını birleştiriyoruz
+    String surahText = surahNames.toList().join(" - ");
 
     return Positioned(
       top: 5,
@@ -146,9 +85,9 @@ class _QuranPageTemplateState extends State<QuranPageTemplate> {
             child: Text(
               surahText,
               style: TextStyle(
-                  fontSize: baseFontSize,
-                  color: Colors.brown,
-                  fontWeight: FontWeight.normal),
+                fontSize: baseFontSize,
+                color: Colors.brown,
+              ),
               textAlign: TextAlign.center,
               overflow: TextOverflow.ellipsis,
             ),
@@ -205,10 +144,10 @@ class _QuranPageTemplateState extends State<QuranPageTemplate> {
     int? currentSurah;
     String currentAyahText = "";
 
-    for (var ayet in widget.ayatList) {
-      int ayetNumber = ayet['Ayet'] as int;
-      int surahNumber = ayet['Sure'] as int;
-      String ayetText = ayet['textArapca'] as String;
+    for (var ayah in widget.ayatList) {
+      int ayahNumber = ayah['Ayet'] as int;
+      int surahNumber = ayah['Sure'] as int;
+      String ayahText = ayah['textArapca'] as String;
 
       if (currentSurah != surahNumber) {
         if (currentAyahText.isNotEmpty) {
@@ -216,14 +155,14 @@ class _QuranPageTemplateState extends State<QuranPageTemplate> {
           currentAyahText = "";
         }
 
-        if (ayetNumber == 1) {
+        if (ayahNumber == 1) {
           pageContent.add(_buildHeaderWidget(surahNumber));
         }
         currentSurah = surahNumber;
       }
 
-      String ayetNumberText = getArabicNumber(ayetNumber.toString());
-      currentAyahText += "$ayetText $ayetNumberText ";
+      String ayahNumberText = getArabicNumber(ayahNumber.toString());
+      currentAyahText += "$ayahText $ayahNumberText ";
     }
 
     if (currentAyahText.isNotEmpty) {
@@ -235,8 +174,8 @@ class _QuranPageTemplateState extends State<QuranPageTemplate> {
 
   Widget _buildTextWidget(String text) {
     List<InlineSpan> textSpans = [];
-    final ayetRegex = RegExp(r'(.*?)(\s*\uFD3F[\u0600-\u06FF]+\uFD3E\s*)');
-    final matches = ayetRegex.allMatches(text);
+    final ayahRegex = RegExp(r'(.*?)(\s*\uFD3F[\u0600-\u06FF]+\uFD3E\s*)');
+    final matches = ayahRegex.allMatches(text);
 
     for (var match in matches) {
       if (match.group(1) != null) {
@@ -285,8 +224,8 @@ class _QuranPageTemplateState extends State<QuranPageTemplate> {
             children: [
               Text(
                 arabicPageNumber,
-                style: TextStyle(
-                    fontSize: baseFontSize * 1.2, color: Colors.brown),
+                style:
+                    TextStyle(fontSize: baseFontSize * 1.2, color: Colors.brown),
               ),
               const SizedBox(width: 8),
               Text(

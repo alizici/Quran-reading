@@ -1,7 +1,7 @@
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
-import 'package:flutter/services.dart';
 import 'dart:io';
+import 'package:flutter/services.dart';
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -12,10 +12,10 @@ class DatabaseHelper {
 
   Database? _database;
 
-  Future<Database?> get database async {
-    if (_database != null) return _database;
+  Future<Database> get database async {
+    if (_database != null) return _database!;
     _database = await _initDatabase();
-    return _database;
+    return _database!;
   }
 
   Future<Database> _initDatabase() async {
@@ -31,9 +31,9 @@ class DatabaseHelper {
     return await openDatabase(path, readOnly: true);
   }
 
-  Future<List<Map<String, dynamic>>> getAyetByPage(int pageNumber) async {
+  Future<List<Map<String, dynamic>>> getAyahByPage(int pageNumber) async {
     final db = await database;
-    return await db!.query(
+    return await db.query(
       'Kuran',
       where: 'Sayfa = ?',
       whereArgs: [pageNumber],
@@ -42,7 +42,7 @@ class DatabaseHelper {
 
   Future<int> getFirstPageOfSurah(int surahNumber) async {
     final db = await database;
-    final List<Map<String, dynamic>> result = await db!.query(
+    final List<Map<String, dynamic>> result = await db.query(
       'Kuran',
       where: 'Sure = ?',
       whereArgs: [surahNumber],
@@ -52,136 +52,135 @@ class DatabaseHelper {
     return result.isNotEmpty ? result.first['Sayfa'] : 1;
   }
 
-  Future<List<Map<String, dynamic>>> getAyetAndMealBySurah(
+  Future<List<Map<String, dynamic>>> getAyahAndTranslationBySurah(
       int surahNumber, String language) async {
     final db = await database;
-    final ayetResults = await db!.query(
+    final ayahResults = await db.query(
       'Kuran',
       columns: ['Ayet', 'textArapca', 'Sure', 'Id', 'Sayfa', 'Cuz'],
       where: 'Sure = ?',
       whereArgs: [surahNumber],
     );
 
-    String mealTable = _getMealTable(language);
+    String translationTable = _getTranslationTable(language);
 
     List<Map<String, dynamic>> enrichedResults = [];
-    for (var ayet in ayetResults) {
-      var ayetMap = Map<String, dynamic>.from(ayet);
-      int? ayetId = ayetMap['Id'];
+    for (var ayah in ayahResults) {
+      var ayahMap = Map<String, dynamic>.from(ayah);
+      int? ayahId = ayahMap['Id'];
 
-      if (ayetId != null) {
-        final List<Map<String, dynamic>> mealResults = await db.query(
-          mealTable,
+      if (ayahId != null) {
+        final List<Map<String, dynamic>> translationResults = await db.query(
+          translationTable,
           columns: ['text'],
           where: 'id = ?',
-          whereArgs: [ayetId],
+          whereArgs: [ayahId],
         );
 
         final List<Map<String, dynamic>> transcriptResults = await db.query(
           'transcript',
           columns: ['text'],
           where: 'id = ?',
-          whereArgs: [ayetId],
+          whereArgs: [ayahId],
         );
 
-        ayetMap['meal'] = mealResults.isNotEmpty
-            ? (mealResults.first['text'] ?? "Meal metni boş")
-            : "Meal bulunamadı";
-        ayetMap['transcript'] = transcriptResults.isNotEmpty
-            ? (transcriptResults.first['text'] ?? "Transcript metni boş")
-            : "Transcript bulunamadı";
+        ayahMap['translation'] = translationResults.isNotEmpty
+            ? (translationResults.first['text'] ?? "Çeviri metni boş")
+            : "Çeviri bulunamadı";
+        ayahMap['transcript'] = transcriptResults.isNotEmpty
+            ? (transcriptResults.first['text'] ?? "Transkript metni boş")
+            : "Transkript bulunamadı";
       } else {
-        ayetMap['meal'] = "Meal ID'si bulunamadı";
-        ayetMap['transcript'] = "Transcript ID'si bulunamadı";
+        ayahMap['translation'] = "Çeviri ID'si bulunamadı";
+        ayahMap['transcript'] = "Transkript ID'si bulunamadı";
       }
 
-      enrichedResults.add(ayetMap);
+      enrichedResults.add(ayahMap);
     }
 
     return enrichedResults;
   }
 
-  Future<List<Map<String, dynamic>>> searchByMeal(
+  Future<List<Map<String, dynamic>>> searchByTranslation(
       String searchText, String language) async {
     final db = await database;
-    String mealTable = _getMealTable(language);
+    String translationTable = _getTranslationTable(language);
 
-    final List<Map<String, dynamic>> mealResults = await db!.rawQuery('''
-      SELECT k.*, m.text as meal, t.text as transcript
+    final List<Map<String, dynamic>> results = await db.rawQuery('''
+      SELECT k.*, m.text as translation, t.text as transcript
       FROM Kuran k
-      JOIN $mealTable m ON k.Id = m.id
+      JOIN $translationTable m ON k.Id = m.id
       LEFT JOIN transcript t ON k.Id = t.id
       WHERE m.text LIKE ?
     ''', ['%$searchText%']);
 
-    return mealResults;
+    return results;
   }
 
-  Future<List<Map<String, dynamic>>> searchByTranscript(
-      String searchText) async {
+  Future<List<Map<String, dynamic>>> searchByTranscript(String searchText) async {
     final db = await database;
 
-    final List<Map<String, dynamic>> transcriptResults = await db!.rawQuery('''
-      SELECT k.*, m.text as meal, t.text as transcript
+    final List<Map<String, dynamic>> results = await db.rawQuery('''
+      SELECT k.*, m.text as translation, t.text as transcript
       FROM Kuran k
       JOIN translation_tr m ON k.Id = m.id
       JOIN transcript t ON k.Id = t.id
       WHERE t.text LIKE ?
     ''', ['%$searchText%']);
 
-    return transcriptResults;
+    return results;
   }
 
   Future<List<Map<String, dynamic>>> searchByArabicText(
       String searchText, String language) async {
     final db = await database;
-    final ayetResults = await db!.query(
+    final ayahResults = await db.query(
       'Kuran',
       columns: ['Ayet', 'textArapca', 'Sure', 'Id', 'Sayfa', 'Cuz'],
       where: 'textArapca LIKE ?',
       whereArgs: ['%$searchText%'],
     );
 
-    String mealTable = _getMealTable(language);
+    String translationTable = _getTranslationTable(language);
 
     List<Map<String, dynamic>> enrichedResults = [];
-    for (var ayet in ayetResults) {
-      var ayetMap = Map<String, dynamic>.from(ayet);
-      int? ayetId = ayetMap['Id'];
+    for (var ayah in ayahResults) {
+      var ayahMap = Map<String, dynamic>.from(ayah);
+      int? ayahId = ayahMap['Id'];
 
-      if (ayetId != null) {
-        final List<Map<String, dynamic>> mealResults = await db.query(
-          mealTable,
+      if (ayahId != null) {
+        final List<Map<String, dynamic>> translationResults = await db.query(
+          translationTable,
           columns: ['text'],
           where: 'id = ?',
-          whereArgs: [ayetId],
+          whereArgs: [ayahId],
         );
 
         final List<Map<String, dynamic>> transcriptResults = await db.query(
           'transcript',
           columns: ['text'],
           where: 'id = ?',
-          whereArgs: [ayetId],
+          whereArgs: [ayahId],
         );
 
-        ayetMap['meal'] = mealResults.isNotEmpty
-            ? (mealResults.first['text'] ?? "Meal metni boş")
-            : "Meal bulunamadı";
-        ayetMap['transcript'] = transcriptResults.isNotEmpty
-            ? (transcriptResults.first['text'] ?? "Transcript metni boş")
-            : "Transcript bulunamadı";
+        ayahMap['translation'] = translationResults.isNotEmpty
+            ? (translationResults.first['text'] ?? "Çeviri metni boş")
+            : "Çeviri bulunamadı";
+        ayahMap['transcript'] = transcriptResults.isNotEmpty
+            ? (transcriptResults.first['text'] ?? "Transkript metni boş")
+            : "Transkript bulunamadı";
       } else {
-        ayetMap['meal'] = "Meal ID'si bulunamadı";
-        ayetMap['transcript'] = "Transcript ID'si bulunamadı";
+        ayahMap['translation'] = "Çeviri ID'si bulunamadı";
+        ayahMap['transcript'] = "Transkript ID'si bulunamadı";
       }
 
-      enrichedResults.add(ayetMap);
+      enrichedResults.add(ayahMap);
     }
 
     return enrichedResults;
   }
 
-  String _getMealTable(String language) {
+  String _getTranslationTable(String language) {
     switch (language) {
       case "Türkçe":
         return 'translation_tr';
